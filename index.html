@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garden Builder with Painting Tools</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a5f23, #0d3b1e);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            color: #ffde7d;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+
+        .left-panel {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .right-panel {
+            flex: 2;
+            min-width: 600px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #ffde7d;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title i {
+            font-size: 1.8rem;
+        }
+
+        .phase-indicator {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .phase {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .phase.active {
+            background: #ffde7d;
+            color: #0d3b1e;
+            box-shadow: 0 0 15px rgba(255, 222, 125, 0.5);
+        }
+
+        .phase:not(.active) {
+            background: rgba(255, 255, 255, 0.1);
+            opacity: 0.7;
+        }
+
+        .phase:not(.active):hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 250px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .control-title {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: #ffde7d;
+        }
+
+        .tool-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tool {
+            width: 70px;
+            height: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 5px;
+        }
+
+        .tool.active {
+            background: #ffde7d;
+            color: #0d3b1e;
+            box-shadow: 0 0 10px rgba(255, 222, 125, 0.7);
+            transform: translateY(-3px);
+        }
+
+        .tool i {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .tool:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .material-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 12px;
+        }
+
+        .material {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .material.active {
+            border-color: #ffde7d;
+            box-shadow: 0 0 0 3px rgba(255, 222, 125, 0.5);
+            transform: scale(1.05);
+        }
+
+        .material:hover:not(.active) {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        #gridContainer {
+            display: grid;
+            gap: 1px;
+            background: #555;
+            border: 3px solid #2c3e50;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            margin: 0 auto;
+        }
+
+        .grid-cell {
+            width: 30px;
+            height: 30px;
+            background: #eee;
+            position: relative;
+            transition: all 0.1s ease;
+        }
+
+        .garden-block {
+            background: #f8f8f8;
+        }
+
+        .instructions {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+
+        .instructions h3 {
+            color: #ffde7d;
+            margin-bottom: 10px;
+        }
+
+        .instructions ul {
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, #ffde7d, #ffb142);
+            color: #0d3b1e;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .preview-area {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .preview-title {
+            margin-bottom: 15px;
+            color: #ffde7d;
+        }
+
+        .preview-block {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        @media (max-width: 950px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .left-panel, .right-panel {
+                min-width: 100%;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1><i class="fas fa-seedling"></i> Garden Builder</h1>
+        <p class="subtitle">Create your dream garden with our intuitive tools. Design your garden layout in Step 1, then customize each block in Step 2.</p>
+    </header>
+
+    <div class="main-content">
+        <div class="left-panel">
+            <h2 class="panel-title"><i class="fas fa-tools"></i> Design Tools</h2>
+
+            <div class="phase-indicator">
+                <div class="phase active" id="phase1Btn">Step 1: Design Layout</div>
+                <div class="phase" id="phase2Btn">Step 2: Customize Blocks</div>
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <div class="control-title">Painting Tools</div>
+                    <div class="tool-selector">
+                        <div class="tool active" id="brushTool" data-tool="brush">
+                            <i class="fas fa-paint-brush"></i>
+                            <span>Brush</span>
+                        </div>
+                        <div class="tool" id="bucketTool" data-tool="bucket">
+                            <i class="fas fa-fill-drip"></i>
+                            <span>Bucket</span>
+                        </div>
+                        <div class="tool" id="eraserTool" data-tool="eraser">
+                            <i class="fas fa-eraser"></i>
+                            <span>Eraser</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-title">Grid Size</div>
+                    <select id="sizeSelector" class="btn-secondary" style="width: 100%; padding: 12px;">
+                        <option value="10">10x10 (Small)</option>
+                        <option value="15" selected>15x15 (Medium)</option>
+                        <option value="20">20x20 (Large)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="control-title">Garden Materials</div>
+                <div class="material-selector">
+                    <div class="material active" style="background: #88BB55;" data-material="grass" title="Grass">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <div class="material" style="background: #5599DD;" data-material="water" title="Water">
+                        <i class="fas fa-water"></i>
+                    </div>
+                    <div class="material" style="background: #66AA22;" data-material="vegetables" title="Vegetables">
+                        <i class="fas fa-carrot"></i>
+                    </div>
+                    <div class="material" style="background: #BB8866;" data-material="dirt" title="Dirt">
+                        <i class="fas fa-mountain"></i>
+                    </div>
+                    <div class="material" style="background: #CCCCCC;" data-material="tiles" title="Tiles">
+                        <i class="fas fa-border-all"></i>
+                    </div>
+                    <div class="material" style="background: #FFAA88;" data-material="flowers" title="Flowers">
+                        <i class="fas fa-spa"></i>
+                    </div>
+                    <div class="material" style="background: #999999;" data-material="stone" title="Stone">
+                        <i class="fas fa-gem"></i>
+                    </div>
+                    <div class="material" style="background: #DDAA66;" data-material="wood" title="Wood">
+                        <i class="fas fa-tree"></i>
+                    </div>
+                    <div class="material" style="background: #AAAAAA;" data-material="path" title="Path">
+                        <i class="fas fa-road"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-area">
+                <h3 class="preview-title">Selected Material</h3>
+                <div class="preview-block" id="materialPreview" style="background: #88BB55;">
+                    <i class="fas fa-leaf"></i>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-secondary" id="clearBtn">
+                    <i class="fas fa-trash-alt"></i> Clear All
+                </button>
+                <button class="btn btn-primary" id="nextBtn">
+                    Next Step <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <h2 class="panel-title"><i class="fas fa-th"></i> Garden Grid</h2>
+            <div id="gridContainer"></div>
+
+            <div class="instructions">
+                <h3><i class="fas fa-info-circle"></i> How to Build Your Garden</h3>
+                <ul>
+                    <li><strong>Step 1:</strong> Use the brush tool to design your garden shape by clicking or dragging on the grid</li>
+                    <li><strong>Step 2:</strong> Click "Next Step" to customize your garden blocks with different materials</li>
+                    <li><strong>Painting Tools:</strong> Brush (paint individual blocks), Bucket (fill entire garden), Eraser (remove blocks)</li>
+                    <li><strong>Pro Tip:</strong> Hold and drag to paint multiple blocks quickly</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Garden materials with logical colors
+    const materials = {
+        'grass': {color: '#88BB55', icon: 'fas fa-leaf'},
+        'water': {color: '#5599DD', icon: 'fas fa-water'},
+        'vegetables': {color: '#66AA22', icon: 'fas fa-carrot'},
+        'dirt': {color: '#BB8866', icon: 'fas fa-mountain'},
+        'tiles': {color: '#CCCCCC', icon: 'fas fa-border-all'},
+        'flowers': {color: '#FFAA88', icon: 'fas fa-spa'},
+        'stone': {color: '#999999', icon: 'fas fa-gem'},
+        'wood': {color: '#DDAA66', icon: 'fas fa-tree'},
+        'path': {color: '#AAAAAA', icon: 'fas fa-road'}
+    };
+
+    // App state
+    let currentPhase = 'shape'; // 'shape' or 'fill'
+    let selectedTool = 'brush'; // 'brush', 'bucket', 'eraser'
+    let selectedMaterial = 'grass';
+    let gridSize = 15;
+    let gardenBlocks = new Set();
+    let isDragging = false;
+
+    // DOM Elements
+    const gridContainer = document.getElementById('gridContainer');
+    const materialPreview = document.getElementById('materialPreview');
+
+    // Initialize the app
+    function initApp() {
+        createGrid();
+        setupEventListeners();
+        updateUI();
+    }
+
+    // Create the grid
+    function createGrid() {
+        gridContainer.innerHTML = '';
+        gridContainer.style.gridTemplateColumns = `repeat(${gridSize}, 30px)`;
+
+        for (let i = 0; i < gridSize * gridSize; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.dataset.index = i;
+            cell.dataset.garden = 'false';
+
+            cell.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                handleCellClick(e);
+                e.preventDefault(); // Prevent text selection
+            });
+
+            cell.addEventListener('mouseover', (e) => {
+                if (isDragging) {
+                    handleCellClick(e);
+                }
+            });
+
+            gridContainer.appendChild(cell);
+        }
+    }
+
+    // Handle cell clicks based on current phase and tool
+    function handleCellClick(e) {
+        const cell = e.target;
+
+        if (currentPhase === 'shape') {
+            if (selectedTool === 'brush') {
+                // Add to garden
+                cell.dataset.garden = 'true';
+                cell.classList.add('garden-block');
+                gardenBlocks.add(cell);
+            } else if (selectedTool === 'eraser') {
+                // Remove from garden
+                cell.dataset.garden = 'false';
+                cell.classList.remove('garden-block');
+                cell.style.backgroundColor = '';
+                cell.innerHTML = '';
+                gardenBlocks.delete(cell);
+            }
+        } else if (currentPhase === 'fill') {
+            if (cell.dataset.garden === 'true') {
+                if (selectedTool === 'brush') {
+                    // Apply selected material
+                    applyMaterial(cell);
+                } else if (selectedTool === 'bucket') {
+                    // Fill all garden blocks with selected material
+                    gardenBlocks.forEach(block => {
+                        applyMaterial(block);
+                    });
+                } else if (selectedTool === 'eraser') {
+                    // Reset to garden base
+                    cell.style.backgroundColor = '#f8f8f8';
+                    cell.innerHTML = '';
+                }
+            }
+        }
+    }
+
+    // Apply material to a cell
+    function applyMaterial(cell) {
+        const material = materials[selectedMaterial];
+        cell.style.backgroundColor = material.color;
+        cell.innerHTML = `<i class="${material.icon}"></i>`;
+    }
+
+    // Update UI based on current state
+    function updateUI() {
+        // Update phase indicators
+        document.getElementById('phase1Btn').classList.toggle('active', currentPhase === 'shape');
+        document.getElementById('phase2Btn').classList.toggle('active', currentPhase === 'fill');
+
+        // Update tool buttons
+        document.querySelectorAll('.tool').forEach(tool => {
+            tool.classList.toggle('active', tool.dataset.tool === selectedTool);
+        });
+
+        // Update material buttons
+        document.querySelectorAll('.material').forEach(material => {
+            material.classList.toggle('active', material.dataset.material === selectedMaterial);
+        });
+
+        // Update material preview
+        const material = materials[selectedMaterial];
+        materialPreview.style.backgroundColor = material.color;
+        materialPreview.innerHTML = `<i class="${material.icon}"></i>`;
+
+        // Update button text
+        document.getElementById('nextBtn').innerHTML =
+            currentPhase === 'shape' ?
+                'Next Step <i class="fas fa-arrow-right"></i>' :
+                'Previous Step <i class="fas fa-arrow-left"></i>';
+    }
+
+    // Set up event listeners
+    function setupEventListeners() {
+        // Tool selection
+        document.querySelectorAll('.tool').forEach(tool => {
+            tool.addEventListener('click', () => {
+                selectedTool = tool.dataset.tool;
+                updateUI();
+            });
+        });
+
+        // Material selection
+        document.querySelectorAll('.material').forEach(material => {
+            material.addEventListener('click', () => {
+                selectedMaterial = material.dataset.material;
+                updateUI();
+            });
+        });
+
+        // Phase switching
+        document.getElementById('phase1Btn').addEventListener('click', () => {
+            currentPhase = 'shape';
+            updateUI();
+        });
+
+        document.getElementById('phase2Btn').addEventListener('click', () => {
+            if (gardenBlocks.size > 0) {
+                currentPhase = 'fill';
+                updateUI();
+            } else {
+                alert('Please create a garden layout first!');
+            }
+        });
+
+        // Next/previous button
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if (currentPhase === 'shape' && gardenBlocks.size > 0) {
+                currentPhase = 'fill';
+            } else if (currentPhase === 'fill') {
+                currentPhase = 'shape';
+            } else {
+                alert('Please create a garden layout first!');
+            }
+            updateUI();
+        });
+
+        // Grid size selector
+        document.getElementById('sizeSelector').addEventListener('change', (e) => {
+            gridSize = parseInt(e.target.value);
+            gardenBlocks.clear();
+            createGrid();
+        });
+
+        // Clear button
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear your garden?')) {
+                gardenBlocks.clear();
+                createGrid();
+                currentPhase = 'shape';
+                updateUI();
+            }
+        });
+
+        // Handle mouse up to stop dragging
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+    }
+
+    // Initialize the app when the page loads
+    window.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>
